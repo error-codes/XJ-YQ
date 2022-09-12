@@ -1,30 +1,25 @@
 package com.young.xjyq.mapper;
 
 import com.young.xjyq.entity.Person;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
 /**
- * @author error-codes【BayMax】
- * @see <a href="www.error-codes.xyz">BayMax Blog</a>
- * @since 2022/9/9 17:34
+ * @author YoungMan [BayMax]
+ * @email PlutoYCR520@outlook.com
+ * @since 2022/9/10 17:24
  */
 @Mapper
 public interface PersonMapper {
 
-    @Select("select * from person where id = #{id} and deleted = 0")
-    Person readPersonById(Long id);
+    int createPerson(Integer personId, String tags, String remark);
 
-    @Select("select * from person where deleted = 0")
+    int deletePerson(List<Integer> personIds);
+
+    int updatePerson(Integer personId, String tags, String remark);
+
+    Person readPersonById(Integer personId);
+
     List<Person> readAllPerson();
-
-    @Update("update person set name = #{name}, avatar = #{avatar}, updateTime = #{updateTime}, ifnull(deleted, deleted = #{})}")
-    int updatePersonById(Long id, Person person);
-
-    int batchDeletePerson(List<Long> ids);
-
-    int createPerson(Person person);
 }

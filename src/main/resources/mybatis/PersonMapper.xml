@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.young.xjyq.mapper.PersonMapper">
+
+    <insert id="createPerson">
+        insert into person
+        values (#{personId}, #{tags}, #{remark})
+    </insert>
+
+    <delete id="deletePerson" parameterType="java.lang.Integer">
+        delete from person where id in
+        <choose>
+            <when test="personIds!=null and personIds.size() > 0">
+                <foreach collection="personIds" item="personId" open="(" separator="," close=")">
+                    #{personId}
+                </foreach>
+            </when>
+            <otherwise>
+                ('')
+            </otherwise>
+        </choose>
+    </delete>
+
+    <update id="updatePerson">
+        update person
+        set tags=#{tags},
+            remark=#{remark}
+        where id = #{personId}
+    </update>
+
+    <select id="readPersonById" resultType="com.young.xjyq.entity.Person">
+        select *
+        from person
+        where id = #{personId}
+    </select>
+
+    <select id="readAllPerson" resultType="com.young.xjyq.entity.Person">
+        select *
+        from person
+    </select>
+
+</mapper>

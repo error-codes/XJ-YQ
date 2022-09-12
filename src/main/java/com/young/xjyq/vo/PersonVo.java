@@ -1,4 +1,4 @@
-package com.young.xjyq.entity;
+package com.young.xjyq.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -7,24 +7,29 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+import java.util.List;
+
 /**
  * @author YoungMan [BayMax]
  * @email PlutoYCR520@outlook.com
- * @since 2022/9/10 19:01
+ * @since 2022/9/10 14:41
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("人物库")
-public class Person {
+@ApiModel("人物视图对象")
+public class PersonVo {
 
-    @ApiModelProperty("人员ID")
-    private Long id;
+    @NotBlank
+    @ApiModelProperty("人物名称")
+    private String personName;
 
     @ApiModelProperty("人物标签")
-    private String tags;
+    private List<Integer> tags;
 
     @ApiModelProperty("备注")
     private String remark;
+
 }

@@ -1,6 +1,10 @@
 package com.young.xjyq.service;
 
-import com.young.xjyq.entity.Person;
+import com.young.xjyq.common.PageInfo;
+import com.young.xjyq.dto.PersonDto;
+import com.young.xjyq.entity.Tag;
+import com.young.xjyq.vo.UpdatePersonVo;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -11,13 +15,19 @@ import java.util.List;
  */
 public interface PersonService {
 
-    Person readPersonById(Long id);
+    PersonDto readPersonById(Integer id);
 
-    List<Person> readAllPerson();
+    PageInfo<PersonDto> readAllPerson(Integer page, Integer pageSize);
 
-    int updatePersonById(Long id);
+    int updatePersonById(UpdatePersonVo updatePersonVo);
 
-    int batchDeletePerson(List<Long> ids);
+    int batchDeletePerson(List<Integer> ids);
 
-    int createPerson(Person person);
+    int createPerson(String personName, List<Integer> tags, String remark, MultipartFile image);
+
+    int updateAvatar(Integer personId, MultipartFile image);
+
+    int deleteAvatar(List<Integer> ids);
+
+    List<Tag> readAllTag();
 }

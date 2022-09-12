@@ -1,11 +1,14 @@
-package com.young.xjyq.entity;
+package com.young.xjyq.dto;
 
+import com.young.xjyq.entity.Tag;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * @author YoungMan [BayMax]
@@ -16,14 +19,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("人物库")
-public class Person {
+@ApiModel("人物数据传输对象")
+public class PersonDto {
 
     @ApiModelProperty("人员ID")
-    private Long id;
+    private Integer id;
+
+    @ApiModelProperty("姓名")
+    private String personName;
+
+    @ApiModelProperty("人脸图片地址")
+    private String faceUrl;
 
     @ApiModelProperty("人物标签")
-    private String tags;
+    private List<Tag> tags;
 
     @ApiModelProperty("备注")
     private String remark;
