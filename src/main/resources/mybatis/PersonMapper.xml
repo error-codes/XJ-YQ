@@ -4,7 +4,7 @@
 
     <insert id="createPerson">
         insert into person
-        values (#{personId}, #{tags}, #{remark})
+        values (#{personId}, #{tags}, #{remark}, #{personName}, #{faceUrl})
     </insert>
 
     <delete id="deletePerson" parameterType="java.lang.Integer">
@@ -23,8 +23,16 @@
 
     <update id="updatePerson">
         update person
-        set tags=#{tags},
+        set
+        <if test="tags != null and tags != ''">
+            tags=#{tags},
+        </if>
+        <if test="remark != null and remark != ''">
             remark=#{remark}
+        </if>
+        <if test="avatar != null and avatar != ''">
+            face_url=#{avatar}
+        </if>
         where id = #{personId}
     </update>
 

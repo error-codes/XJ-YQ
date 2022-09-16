@@ -27,7 +27,7 @@ public class VideoListDto {
     private Long videoId;
 
     @ApiModelProperty("入库时间")
-    private Date createTime;
+    private String createTime;
 
     @ApiModelProperty("标签")
     private List<Tag> tags;
@@ -39,7 +39,13 @@ public class VideoListDto {
     private String author;
 
     @ApiModelProperty("违规状态")
-    private Integer status;
+    private List<Integer> status;
+
+    @ApiModelProperty("人脸识别任务ID")
+    private String faceTaskId;
+
+    @ApiModelProperty("文本识别任务ID")
+    private String ocrTaskId;
 
     @ApiModelProperty("人脸识别状态")
     private Integer faceStatus;

@@ -36,6 +36,6 @@ public class FaceMatchDto {
     private Integer y;
     private Integer w;
     private Integer h;
-    private LocalDateTime create_time;
+    private String create_time;
     private Float face_quality;
 }

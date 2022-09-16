@@ -24,17 +24,5 @@ public class OcrDto {
     private List<Ocr> ocrDtos;
 
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @ApiModel("文本识别")
-    public static class Ocr {
 
-        @ApiModelProperty("时间帧")
-        private Float timeFrame;
-
-        @ApiModelProperty("文本内容")
-        private String text;
-    }
 }

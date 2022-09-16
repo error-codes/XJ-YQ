@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,12 +39,14 @@ public class VideoController {
         this.videoService = videoService;
     }
 
-    @Scheduled(cron = "* * 0/1 * * *")
+    @Async
+    @Scheduled(cron = "0 0 0/4 * * *")
     public void insertVideo() {
         videoService.createVideo();
     }
 
-    @Scheduled(cron = "* 0/30 * * * *")
+    @Async
+    @Scheduled(cron = "0 0 0/2 * * *")
     public void updateVideo() {
         videoService.updateVideo();
     }
@@ -65,7 +68,6 @@ public class VideoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "页码", dataType = "Integer", dataTypeClass = Integer.class),
             @ApiImplicitParam(name = "pageSize", value = "装载数量", dataType = "Integer", dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "videoSearchVo", value = "视频检索参数", dataType = "VideoSearchVo", dataTypeClass = VideoSearchVo.class)
     })
     @ApiOperation("获取视频列表")
     public Result<PageInfo<VideoListDto>> readAllVideo(@RequestParam(defaultValue = "1") Integer page,
@@ -110,7 +112,7 @@ public class VideoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "task", value = "人脸识别任务ID", dataType = "String", dataTypeClass = String.class)
     })
-    @ApiOperation("获取文本识别结果列表")
+    @ApiOperation("获取人脸识别结果列表")
     public Result<FaceDto> readFaceResult(@RequestParam @NotBlank String task) {
         try {
             return new Result<>(200, "查询成功", videoService.readFaceResult(task));

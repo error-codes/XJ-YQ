@@ -8,9 +8,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://139.198.37.239:3306/xjyq
+    url: jdbc:mysql://192.17.1.162:3306/xjyq
     username: root
-    password: xijuzhihui
+    password: wiseweb@180420
     hikari:
       minimum-idle: 5
       idle-timeout: 30000
@@ -42,4 +42,12 @@ xinrui:
 forest:
   max-connections: 1000        # 连接池最大连接数
   connect-timeout: 20000        # 连接超时时间，单位为毫秒
-  read-timeout: 20000           # 数据读取超时时间，单位为毫秒
+  read-timeout: 200000           # 数据读取超时时间，单位为毫秒
+  converters:
+    json:
+      type: com.dtflys.forest.converter.json.ForestJacksonConverter
+      dateFormat: yyyy-MM-dd HH:mm:ss
+
+  interceptors: com.young.xjyq.config.YoungInterceptor
+  max-retry-count: 3     # 最大请求重试次数，默认为 0 次
+  max-retry-interval: 10 # 为最大重试时间间隔, 单位为毫秒，默认为 0 毫秒

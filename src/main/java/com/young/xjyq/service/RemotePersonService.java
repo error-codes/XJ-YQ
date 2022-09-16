@@ -21,7 +21,7 @@ public interface RemotePersonService {
     Result<ReadPersonDto> readPersonById(@Query("person_id") Integer id);
 
     @Get(url = "http://192.17.1.20:9898/jtface/v1/person/list/")
-    ResultPageList<ReadPersonListDto> readAllPerson(@Query("page") Integer page,
+    ResultPageList<ReadPersonListDto> readAllPerson(@Query("offset") Integer page,
                                                     @Query("limit") Integer pageSize,
                                                     @Query("repo_id") String repoId);
 

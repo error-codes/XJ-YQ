@@ -8,9 +8,23 @@
         where id = #{id}
     </select>
 
+    <select id="readVideoByUrl" resultType="com.young.xjyq.entity.Video">
+        select *
+        from video
+        where url = #{url}
+    </select>
+
     <select id="countVideo" resultType="java.lang.Integer">
         select COUNT(id)
         from video
+        <where>
+            <if test="startTime!=null and endTime!=null">
+                and create_time between #{startTime} and #{endTime}
+            </if>
+            <if test="author!=null and author!=''">
+                and `source` like concat('%', #{author}, '%')
+            </if>
+        </where>
     </select>
 
     <select id="readAllVideo" resultType="com.young.xjyq.entity.Video">
@@ -23,6 +37,7 @@
                 and `source` like concat('%', #{author}, '%')
             </if>
         </where>
+        order by create_time desc
         <if test="page!=null and pageSize!=''">
             limit #{page}, #{pageSize}
         </if>
@@ -48,29 +63,34 @@
             </if>
             update_time=now()
         </set>
-        where id#{id}
+        where id=#{id}
     </update>
 
     <update id="batchDeleteVideo">
-        update video set deleted = 1 where id in
-        <choose>
-            <when test="ids!=null and ids.size()>0">
-                <foreach collection="ids" item="id" open="(" separator="," close=")">
-                    #{id}
-                </foreach>
-            </when>
-            <otherwise>
-                ('')
-            </otherwise>
-        </choose>
+        update video set deleted = 1
+        <where>
+            id in
+            <choose>
+                <when test="ids!=null and ids.size()>0">
+                    <foreach collection="ids" item="id" open="(" separator="," close=")">
+                        #{id}
+                    </foreach>
+                </when>
+                <otherwise>
+                    ('')
+                </otherwise>
+            </choose>
+        </where>
     </update>
 
     <insert id="createVideo" parameterType="com.young.xjyq.entity.Video">
         insert into video values
         <foreach collection="videos" item="video" separator=",">
-            (#{video.videoId}, #{video.url}, #{video.tags}, #{video.source},
-            #{video.status}, #{video.createTime}, #{video.updateTime}, #{video.deleted},
-            #{video.faceTaskId}, #{video.ocrTaskId}, #{video.faceStatus}, #{video.ocrStatus})
+            ( #{video.id}, #{video.url}, #{video.tags}, #{video.source},
+                #{video.status}, #{video.createTime}, #{video.updateTime},
+                #{video.deleted}, #{video.faceTaskId}, #{video.ocrTaskId},
+                #{video.faceStatus}, #{video.ocrStatus})
         </foreach>
+        on duplicate key update url = values(url)
     </insert>
 </mapper>

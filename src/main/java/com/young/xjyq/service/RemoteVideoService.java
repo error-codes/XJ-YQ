@@ -1,6 +1,7 @@
 package com.young.xjyq.service;
 
 import com.dtflys.forest.annotation.*;
+import com.dtflys.forest.http.ForestResponse;
 import com.young.xjyq.common.Result;
 import com.young.xjyq.common.ResultList;
 import com.young.xjyq.common.ResultPage;
@@ -20,13 +21,14 @@ public interface RemoteVideoService {
     ResultPage<VideoGatherDto> insertVideo(@Query("pageNo") Integer page,
                                            @Query("pageSize") Integer pageSize,
                                            @Query("time") Integer time,
+                                           @Query("timeType") Integer timeType,
                                            @Query("domain2") String domain,
                                            @Query("type") Integer type,
                                            @Query("author") String author,
                                            @Query("keyword") String keyword);
 
     @Post(url = "http://192.17.1.20:9898/structure/v1/upload_video/")
-    Result<CreateTaskDto> createFaceTask(@Body("video_url") String videoUrl);
+    ForestResponse<Result<CreateTaskDto>> createFaceTask(@Body("video_url") String videoUrl);
 
     @Get(url = "http://192.17.1.20:9898/structure/v1/{taskId}/taskstatus/")
     Result<FaceTaskResultDto> readTaskFaceStatus(@Query("taskId") String taskId);
@@ -35,7 +37,7 @@ public interface RemoteVideoService {
     ResultList<FaceMatchDto> readTaskFace(@Query("taskId") String taskId);
 
     @Post(url = "http://192.17.1.20:9898/structure/v3/ocr/upload_video/")
-    Result<CreateTaskDto> createOcrTask(@Body("video_url") String videoUrl);
+    ForestResponse<Result<CreateTaskDto>> createOcrTask(@Body("video_url") String videoUrl);
 
     @Get(url = "http://192.17.1.20:9898/structure/v3/ocr/{taskId}/taskstatus/")
     Result<OcrTaskResultDto> readTaskOcrStatus(@Query("taskId") String taskId);

@@ -1,6 +1,7 @@
 package com.young.xjyq.service;
 
 import com.young.xjyq.common.PageInfo;
+import com.young.xjyq.dto.PersonDetailDto;
 import com.young.xjyq.dto.PersonDto;
 import com.young.xjyq.entity.Tag;
 import com.young.xjyq.vo.UpdatePersonVo;
@@ -15,7 +16,7 @@ import java.util.List;
  */
 public interface PersonService {
 
-    PersonDto readPersonById(Integer id);
+    PersonDetailDto readPersonById(Integer id);
 
     PageInfo<PersonDto> readAllPerson(Integer page, Integer pageSize);
 
@@ -27,7 +28,7 @@ public interface PersonService {
 
     int updateAvatar(Integer personId, MultipartFile image);
 
-    int deleteAvatar(List<Integer> ids);
+    int deleteAvatar(List<Integer> ids, Integer personId);
 
     List<Tag> readAllTag();
 }

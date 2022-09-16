@@ -1,6 +1,7 @@
 package com.young.xjyq.entity;
 
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,9 @@ import lombok.NoArgsConstructor;
 @ApiModel("标签")
 public class Tag {
 
+    @ApiModelProperty("标签ID")
     private Integer id;
 
+    @ApiModelProperty("标签名")
     private String tag;
 }

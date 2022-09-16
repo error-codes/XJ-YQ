@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author error-codes【BayMax】
@@ -30,7 +31,7 @@ public class Video {
 
     private String source;
 
-    private Integer status;
+    private String status;
 
     private Integer deleted;
 

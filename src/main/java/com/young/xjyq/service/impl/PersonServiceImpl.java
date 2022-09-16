@@ -3,6 +3,7 @@ package com.young.xjyq.service.impl;
 import com.young.xjyq.common.PageInfo;
 import com.young.xjyq.common.Result;
 import com.young.xjyq.common.ResultPageList;
+import com.young.xjyq.dto.PersonDetailDto;
 import com.young.xjyq.dto.PersonDto;
 import com.young.xjyq.dto.apiResult.*;
 import com.young.xjyq.entity.Person;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -47,7 +49,7 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
-    public PersonDto readPersonById(Integer id) {
+    public PersonDetailDto readPersonById(Integer id) {
         Result<ReadPersonDto> result = remotePersonService.readPersonById(id);
 
         if (result.getCode() != 0) {
@@ -55,33 +57,27 @@ public class PersonServiceImpl implements PersonService {
         }
         Person person = personMapper.readPersonById(id);
         ReadPersonDto readPersonDto = result.getData();
-        return new PersonDto(id,
+        return new PersonDetailDto(readPersonDto.getId(),
                 readPersonDto.getPerson_name(),
-                readPersonDto.getFace_list().get(0).getFace_url(),
+                readPersonDto.getFace_list(),
                 Objects.isNull(person) ? null : tagMapper.readTagByIds(YoungUtils.getTag(person.getTags())),
                 Objects.isNull(person) ? null : person.getRemark());
     }
 
     @Override
     public PageInfo<PersonDto> readAllPerson(Integer page, Integer pageSize) {
-        ResultPageList<ReadPersonListDto> result = remotePersonService.readAllPerson(page, pageSize, repoId);
+        List<Person> personList = personMapper.readAllPerson();
 
-        if (result.getCode() != 0) {
-            throw new RuntimeException();
+        List<PersonDto> personDtos = new ArrayList<>();
+        for (Person person : personList) {
+            personDtos.add(new PersonDto(person.getId(),
+                    person.getPersonName(),
+                    person.getFaceUrl(),
+                    tagMapper.readTagByIds(YoungUtils.getTag(person.getTags())),
+                    person.getRemark()));
         }
-        List<ReadPersonListDto> readPersonListDtoList = result.getData();
-        return new PageInfo<>(page,
-                pageSize,
-                result.getCount(),
-                readPersonListDtoList.stream().map(readPersonListDto -> {
-                    int personId = readPersonListDto.getId();
-                    Person person = personMapper.readPersonById(personId);
-                    return new PersonDto(personId,
-                            readPersonListDto.getPerson_name(),
-                            readPersonListDto.getFace_url(),
-                            Objects.isNull(person) ? null : tagMapper.readTagByIds(YoungUtils.getTag(person.getTags())),
-                            Objects.isNull(person) ? null : person.getRemark());
-                }).collect(Collectors.toList()));
+
+        return new PageInfo<>(page, pageSize, personList.size(), personDtos);
     }
 
     @Override
@@ -93,16 +89,12 @@ public class PersonServiceImpl implements PersonService {
         if (result.getCode() != 0) {
             return -1;
         }
-        Person person = personMapper.readPersonById(updatePersonVo.getPersonId());
-        if (Objects.isNull(person)) {
-            return personMapper.createPerson(updatePersonVo.getPersonId(),
-                    YoungUtils.mergeTagList(updatePersonVo.getTags()),
-                    updatePersonVo.getRemark());
-        } else {
-            return personMapper.updatePerson(updatePersonVo.getPersonId(),
-                    YoungUtils.mergeTagList(updatePersonVo.getTags()),
-                    updatePersonVo.getRemark());
-        }
+
+        return personMapper.updatePerson(updatePersonVo.getPersonId(),
+                YoungUtils.mergeTagList(updatePersonVo.getTags()),
+                updatePersonVo.getRemark(),
+                null);
+
     }
 
     @Override
@@ -125,9 +117,12 @@ public class PersonServiceImpl implements PersonService {
         if (result.getCode() != 0) {
             return -1;
         }
+        List<ReadPersonDto.Face> faceList = remotePersonService.readPersonById(result.getData().getPerson_id()).getData().getFace_list();
         return personMapper.createPerson(result.getData().getPerson_id(),
                 YoungUtils.mergeTagList(tags),
-                remark);
+                remark,
+                personName,
+                faceList.isEmpty() ? null : faceList.get(0).getFace_url());
     }
 
     @Override
@@ -135,19 +130,21 @@ public class PersonServiceImpl implements PersonService {
         Result<UpdateAvatarDto> result = remotePersonService.updateAvatar(personId, "image0", image);
 
         if (result.getCode() != 0) {
-            return -1;
+            throw new RuntimeException();
         }
-        return 1;
+        List<ReadPersonDto.Face> faceList = remotePersonService.readPersonById(personId).getData().getFace_list();
+        return personMapper.updatePerson(personId, null, null, faceList.isEmpty() ? null : faceList.get(0).getFace_url());
     }
 
     @Override
-    public int deleteAvatar(List<Integer> ids) {
+    public int deleteAvatar(List<Integer> ids, Integer personId) {
         Result<DeleteAvatarDto> result = remotePersonService.deleteAvatar(ids);
 
         if (result.getCode() != 0) {
             return -1;
         }
-        return ids.size();
+        List<ReadPersonDto.Face> faceList = remotePersonService.readPersonById(personId).getData().getFace_list();
+        return personMapper.updatePerson(personId, null, null, faceList.isEmpty() ? null : faceList.get(0).getFace_url());
     }
 
     @Override

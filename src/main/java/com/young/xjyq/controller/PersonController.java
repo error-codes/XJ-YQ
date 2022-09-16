@@ -2,6 +2,7 @@ package com.young.xjyq.controller;
 
 import com.young.xjyq.common.PageInfo;
 import com.young.xjyq.common.Result;
+import com.young.xjyq.dto.PersonDetailDto;
 import com.young.xjyq.dto.PersonDto;
 import com.young.xjyq.entity.Tag;
 import com.young.xjyq.service.PersonService;
@@ -41,7 +42,7 @@ public class PersonController {
             @ApiImplicitParam(name = "id", value = "人物ID", dataType = "Integer", dataTypeClass = Integer.class)
     })
     @ApiOperation("根据人物ID获取人物详情")
-    public Result<PersonDto> readPersonById(@RequestParam @NotNull Integer id) {
+    public Result<PersonDetailDto> readPersonById(@RequestParam @NotNull Integer id) {
         try {
             return new Result<>(200, "查询成功", personService.readPersonById(id));
         } catch (Exception e) {
@@ -65,9 +66,6 @@ public class PersonController {
     }
 
     @PostMapping("/updatePersonById")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "updatePersonVo", value = "人物ID", dataType = "UpdatePersonVo", dataTypeClass = UpdatePersonVo.class)
-    })
     @ApiOperation("根据人物ID修改人物信息")
     public Result<?> updatePersonById(@NotNull UpdatePersonVo updatePersonVo) {
         int result = personService.updatePersonById(updatePersonVo);
@@ -118,8 +116,8 @@ public class PersonController {
             @ApiImplicitParam(name = "image", value = "头像", dataType = "MultipartFile", dataTypeClass = MultipartFile.class)
     })
     @ApiOperation("更新人物头像")
-    public Result<?> updateAvatar(@RequestParam("人物ID") Integer personId,
-                                  @RequestPart("人物头像") @NotNull MultipartFile image) {
+    public Result<?> updateAvatar(@RequestParam @NotNull Integer personId,
+                                  @RequestPart @NotNull MultipartFile image) {
         int result = personService.updateAvatar(personId, image);
         if (result > 0) {
             return new Result<>(200, "修改成功", null);
@@ -130,11 +128,13 @@ public class PersonController {
 
     @PostMapping("/deleteAvatar")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids", value = "头像ID列表", dataType = "Integer", dataTypeClass = Integer.class, allowMultiple = true)
+            @ApiImplicitParam(name = "ids", value = "头像ID列表", dataType = "Integer", dataTypeClass = Integer.class, allowMultiple = true),
+            @ApiImplicitParam(name = "personId", value = "人物ID", dataType = "Integer", dataTypeClass = Integer.class)
     })
     @ApiOperation("删除人物头像")
-    public Result<?> deleteAvatar(@RequestParam List<Integer> ids) {
-        int result = personService.deleteAvatar(ids);
+    public Result<?> deleteAvatar(@RequestParam List<Integer> ids,
+                                  @RequestParam Integer personId) {
+        int result = personService.deleteAvatar(ids, personId);
         if (result > 0) {
             return new Result<>(200, "删除成功", null);
         } else {

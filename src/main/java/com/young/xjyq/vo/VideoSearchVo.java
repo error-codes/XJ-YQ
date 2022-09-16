@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -21,10 +22,12 @@ import java.util.Date;
 @ApiModel("视频检索视图对象")
 public class VideoSearchVo {
 
-    @ApiModelProperty("开始时间")
+    @ApiModelProperty(value = "开始时间", dataType = "Date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date startTime;
 
-    @ApiModelProperty("结束时间")
+    @ApiModelProperty(value = "结束时间", dataType = "Date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date endTime;
 
     @ApiModelProperty("所属来源")

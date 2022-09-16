@@ -22,7 +22,7 @@ public class OcrMatchDto {
     private String stream_id;
     private String frame_id;
     private String timestamp;
-    private LocalDateTime create_time;
+    private String create_time;
     private String ocr_result;
     private Float intime;
 
