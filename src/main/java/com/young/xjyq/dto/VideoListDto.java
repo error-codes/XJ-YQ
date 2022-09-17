@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,6 +33,9 @@ public class VideoListDto {
 
     @ApiModelProperty("视频链接")
     private String url;
+
+    @ApiModelProperty("视频链接")
+    private String sourceUrl;
 
     @ApiModelProperty("所属来源")
     private String author;

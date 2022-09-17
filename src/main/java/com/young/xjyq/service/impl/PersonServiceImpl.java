@@ -2,7 +2,6 @@ package com.young.xjyq.service.impl;
 
 import com.young.xjyq.common.PageInfo;
 import com.young.xjyq.common.Result;
-import com.young.xjyq.common.ResultPageList;
 import com.young.xjyq.dto.PersonDetailDto;
 import com.young.xjyq.dto.PersonDto;
 import com.young.xjyq.dto.apiResult.*;
@@ -22,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author error-codes【BayMax】
@@ -91,6 +89,7 @@ public class PersonServiceImpl implements PersonService {
         }
 
         return personMapper.updatePerson(updatePersonVo.getPersonId(),
+                updatePersonVo.getPersonName(),
                 YoungUtils.mergeTagList(updatePersonVo.getTags()),
                 updatePersonVo.getRemark(),
                 null);
@@ -133,7 +132,7 @@ public class PersonServiceImpl implements PersonService {
             throw new RuntimeException();
         }
         List<ReadPersonDto.Face> faceList = remotePersonService.readPersonById(personId).getData().getFace_list();
-        return personMapper.updatePerson(personId, null, null, faceList.isEmpty() ? null : faceList.get(0).getFace_url());
+        return personMapper.updatePerson(personId, null, null, null, faceList.isEmpty() ? null : faceList.get(0).getFace_url());
     }
 
     @Override
@@ -144,7 +143,7 @@ public class PersonServiceImpl implements PersonService {
             return -1;
         }
         List<ReadPersonDto.Face> faceList = remotePersonService.readPersonById(personId).getData().getFace_list();
-        return personMapper.updatePerson(personId, null, null, faceList.isEmpty() ? null : faceList.get(0).getFace_url());
+        return personMapper.deleteAvatar(faceList.isEmpty() ? null : faceList.get(0).getFace_url(), personId);
     }
 
     @Override

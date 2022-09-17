@@ -1,7 +1,10 @@
 package com.young.xjyq.service.impl;
 
 import com.dtflys.forest.http.ForestResponse;
-import com.young.xjyq.common.*;
+import com.young.xjyq.common.PageInfo;
+import com.young.xjyq.common.Result;
+import com.young.xjyq.common.ResultList;
+import com.young.xjyq.common.ResultPage;
 import com.young.xjyq.dto.*;
 import com.young.xjyq.dto.apiResult.*;
 import com.young.xjyq.entity.Person;
@@ -17,7 +20,6 @@ import com.young.xjyq.util.YoungUtils;
 import com.young.xjyq.vo.VideoSearchVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.support.ExecutorServiceAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,6 +181,7 @@ public class VideoServiceImpl implements VideoService {
                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(video.getCreateTime()),
                 tagMapper.readTagByIds(YoungUtils.getTag(video.getTags())),
                 video.getUrl(),
+                null,
                 video.getSource(),
                 YoungUtils.getTag(video.getStatus()),
                 video.getFaceTaskId(),
@@ -197,6 +200,7 @@ public class VideoServiceImpl implements VideoService {
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(video.getCreateTime()),
                     tags,
                     video.getUrl(),
+                    null,
                     video.getSource(),
                     YoungUtils.getTag(video.getStatus()),
                     video.getFaceTaskId(),

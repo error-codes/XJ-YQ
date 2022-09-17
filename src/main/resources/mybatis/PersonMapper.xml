@@ -23,16 +23,26 @@
 
     <update id="updatePerson">
         update person
-        set
-        <if test="tags != null and tags != ''">
-            tags=#{tags},
-        </if>
-        <if test="remark != null and remark != ''">
-            remark=#{remark}
-        </if>
-        <if test="avatar != null and avatar != ''">
-            face_url=#{avatar}
-        </if>
+        <set>
+            <if test="tags != null and tags != ''">
+                tags=#{tags},
+            </if>
+            <if test="personName != null and personName != ''">
+                person_name=#{personName},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark=#{remark},
+            </if>
+            <if test="avatar != null and avatar != ''">
+                face_url=#{avatar},
+            </if>
+        </set>
+        where id = #{personId}
+    </update>
+
+    <update id="deleteAvatar">
+        update person
+        set face_url=#{avatar}
         where id = #{personId}
     </update>
 

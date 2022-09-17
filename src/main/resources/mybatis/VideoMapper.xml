@@ -36,6 +36,7 @@
             <if test="author!=null and author!=''">
                 and `source` like concat('%', #{author}, '%')
             </if>
+                 and deleted = 0
         </where>
         order by create_time desc
         <if test="page!=null and pageSize!=''">

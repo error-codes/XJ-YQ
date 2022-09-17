@@ -17,7 +17,9 @@ public interface PersonMapper {
 
     int deletePerson(List<Integer> personIds);
 
-    int updatePerson(Integer personId, String tags, String remark, String avatar);
+    int deleteAvatar(String avatar, Integer personId);
+
+    int updatePerson(Integer personId, String personName, String tags, String remark, String avatar);
 
     Person readPersonById(Integer personId);
 
