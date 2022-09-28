@@ -21,7 +21,7 @@ public class WiseResult {
 
     private String result;
 
-    private List<Predictions> predictions;
+    private List<Predictions> data;
 
     @Data
     @Builder

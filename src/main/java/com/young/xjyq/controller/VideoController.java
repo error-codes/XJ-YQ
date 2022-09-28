@@ -40,13 +40,15 @@ public class VideoController {
     }
 
     @Async
-    @Scheduled(cron = "0 0 0/4 * * *")
+    @GetMapping("/1")
+//    @Scheduled(cron = "0 0 0/2 * * *")
     public void insertVideo() {
         videoService.createVideo();
     }
 
     @Async
-    @Scheduled(cron = "0 0 0/2 * * *")
+    @GetMapping("/2")
+//    @Scheduled(cron = "0 0 0/2 * * *")
     public void updateVideo() {
         videoService.updateVideo();
     }

@@ -17,33 +17,35 @@ import java.util.List;
 @Service
 public interface RemotePersonService {
 
-    @Get(url = "http://192.17.1.20:9898/jtface/v1/person/query_person/")
+    String xinruiApi = "http://116.178.87.241:9898";
+
+    @Get(url = xinruiApi + "/jtface/v1/person/query_person/")
     Result<ReadPersonDto> readPersonById(@Query("person_id") Integer id);
 
-    @Get(url = "http://192.17.1.20:9898/jtface/v1/person/list/")
+    @Get(url = xinruiApi + "/jtface/v1/person/list/")
     ResultPageList<ReadPersonListDto> readAllPerson(@Query("offset") Integer page,
                                                     @Query("limit") Integer pageSize,
                                                     @Query("repo_id") String repoId);
 
-    @Post(url = "http://192.17.1.20:9898/jtface/v1/person/{personId}/repair_stranger/")
+    @Post(url = xinruiApi + "/jtface/v1/person/{personId}/repair_stranger/")
     Result<ReadPersonDto> updatePersonById(@Var("personId") Integer personId,
                                            @Body("person_name") String personName,
                                            @Body("repo_id") String repoId);
 
-    @Delete(url = "http://192.17.1.20:9898/jtface/v1/person/list_destroy/")
+    @Delete(url = xinruiApi + "/jtface/v1/person/list_destroy/")
     Result<DeletePersonDto> batchDeletePerson(@JSONBody("person_ids") List<Integer> ids);
 
-    @Post(url = "http://192.17.1.20:9898/jtface/v1/person/")
+    @Post(url = xinruiApi + "/jtface/v1/person/")
     Result<CreatePersonDto> createPerson(@Body("person_name") String personName,
                                          @Body("images") String imageIndex,
                                          @DataFile("image0") MultipartFile image,
                                          @Body("repo_id") String repoId);
 
-    @Post(url = "http://192.17.1.20:9898/jtface/v1/faceimg/")
+    @Post(url = xinruiApi + "/jtface/v1/faceimg/")
     Result<UpdateAvatarDto> updateAvatar(@Body("person_id") Integer personId,
                                          @Body("images") String imageIndex,
                                          @DataFile("image0") MultipartFile image);
 
-    @Delete(url = "http://192.17.1.20:9898/jtface/v1/faceimg/list_destroy/")
+    @Delete(url = xinruiApi + "/jtface/v1/faceimg/list_destroy/")
     Result<DeleteAvatarDto> deleteAvatar(@JSONBody("face_ids") List<Integer> ids);
 }

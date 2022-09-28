@@ -1,25 +1,10 @@
-server:
-  port: 2222
-
 spring:
+  profiles:
+    active: prod
+
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
-
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.17.1.162:3306/xjyq
-    username: root
-    password: wiseweb@180420
-    hikari:
-      minimum-idle: 5
-      idle-timeout: 30000
-      maximum-pool-size: 10
-      auto-commit: true
-      pool-name: YoungHikariConnectionPool
-      max-lifetime: 55000
-      connection-timeout: 0
-      connection-test-query: SELECT 1
 
 mybatis:
   configuration:
@@ -27,17 +12,12 @@ mybatis:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   mapper-locations: classpath:mybatis/*.xml
 
-knife4j:
-  enable: true
-  setting:
-    enableOpenApi: false
-    enableHost: true
-    enableDocumentManage: false
 
 xinrui:
   api:
-    request: "http://192.17.1.20:9898"
     repoId: "11010801"
+  img:
+    host: "http://192.17.1.20:9898/"
 
 forest:
   max-connections: 1000        # 连接池最大连接数

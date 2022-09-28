@@ -1,4 +1,4 @@
-package com.young.xjyq.entity;
+package com.young.xjyq.common;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -7,25 +7,26 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
+ * 响应结果结构体
+ *
  * @author YoungMan [BayMax]
  * @email PlutoYCR520@outlook.com
- * @since 2022/9/10 18:55
+ * @since 2022/9/10 14:17
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("标签")
-public class Tag {
+public class ResultCount<T> {
 
-    @ApiModelProperty("标签ID")
-    private Integer id;
+    private Integer code;
 
-    @ApiModelProperty("标签名")
-    private String tag;
+    private String msg;
 
-    @ApiModelProperty("是否显示  1显示 0隐藏")
-    private Integer hide;
+    private List<T> data;
 
+    private Integer count;
 }

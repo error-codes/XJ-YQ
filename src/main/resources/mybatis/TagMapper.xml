@@ -5,6 +5,7 @@
     <select id="readAllTag" resultType="com.young.xjyq.entity.Tag">
         select *
         from tag
+        where hide = 1
     </select>
 
     <select id="readTagByIds" resultType="com.young.xjyq.entity.Tag">
@@ -18,7 +19,7 @@
                 </foreach>
             </when>
             <otherwise>
-                ('')
+                ('-9999.99')
             </otherwise>
         </choose>
     </select>

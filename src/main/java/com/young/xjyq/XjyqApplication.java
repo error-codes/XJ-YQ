@@ -2,6 +2,7 @@ package com.young.xjyq;
 
 import com.dtflys.forest.springboot.annotation.ForestScan;
 import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -10,8 +11,6 @@ import springfox.documentation.oas.annotations.EnableOpenApi;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableOpenApi
-@EnableKnife4j
 @EnableAsync
 @ForestScan(basePackages = "com.young.xjyq.service")
 public class XjyqApplication {

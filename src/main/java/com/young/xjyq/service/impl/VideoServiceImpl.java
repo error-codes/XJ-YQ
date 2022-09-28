@@ -1,10 +1,7 @@
 package com.young.xjyq.service.impl;
 
 import com.dtflys.forest.http.ForestResponse;
-import com.young.xjyq.common.PageInfo;
-import com.young.xjyq.common.Result;
-import com.young.xjyq.common.ResultList;
-import com.young.xjyq.common.ResultPage;
+import com.young.xjyq.common.*;
 import com.young.xjyq.dto.*;
 import com.young.xjyq.dto.apiResult.*;
 import com.young.xjyq.entity.Person;
@@ -19,7 +16,9 @@ import com.young.xjyq.util.SnowFlakeUtils;
 import com.young.xjyq.util.YoungUtils;
 import com.young.xjyq.vo.VideoSearchVo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,19 +41,11 @@ public class VideoServiceImpl implements VideoService {
     private final TagMapper tagMapper;
     private final RemoteVideoService remoteVideoService;
 
-    private ExecutorService threadPool = new ThreadPoolExecutor(
-            3,
-            10,
-            10,
-            TimeUnit.SECONDS,
-            new LinkedBlockingDeque<>(5),
-            Executors.defaultThreadFactory(),
-            new ThreadPoolExecutor.DiscardOldestPolicy());
-
     @Autowired
     public VideoServiceImpl(PersonMapper personMapper,
                             VideoMapper videoMapper,
-                            TagMapper tagMapper, RemoteVideoService remoteVideoService) {
+                            TagMapper tagMapper,
+                            RemoteVideoService remoteVideoService) {
         this.personMapper = personMapper;
         this.videoMapper = videoMapper;
         this.tagMapper = tagMapper;
@@ -64,20 +55,22 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public void createVideo() {
         int page = 1;
-        List<String> videos = videoMapper.readAllVideo(null, null, null, null, null).stream().map(Video::getUrl).collect(Collectors.toList());
         while (true) {
-            ResultPage<VideoGatherDto> videoGatherDtoResultPage = remoteVideoService.insertVideo(page++, 100, 1, 1, "bj.com", 1, "天脉电视", null);
+            List<String> videos = videoMapper.readAllVideo(null, null, null, null, null).stream().map(Video::getUrl).collect(Collectors.toList());
+            ResultPage<VideoGatherDto> videoGatherDtoResultPage = remoteVideoService.insertVideo(page++, 40, 25, 1, null, 1, "天脉电视", "新疆");
             List<Video> videoList = videoGatherDtoResultPage.getData().stream().map(videoGatherDto -> {
+                videoGatherDto.setUrl(videoGatherDto.getUrl().replace("http://www.zyhz-bj.com:18081", "http://8.142.158.96:18081")
+                        .replace("http://www.zyhz-bj.com:22223", "http://8.142.158.96:18081"));
                 if (!videos.contains(videoGatherDto.getUrl())) {
                     ForestResponse<Result<CreateTaskDto>> faceTask = remoteVideoService.createFaceTask(videoGatherDto.getUrl());
                     ForestResponse<Result<CreateTaskDto>> ocrTask = remoteVideoService.createOcrTask(videoGatherDto.getUrl());
 
                     long snowFlakeId = SnowFlakeUtils.getSnowFlakeId();
                     if (faceTask.isTimeout() || faceTask.isError()) {
-                        log.warn("创建视频[视频ID: {}, 视频URL: {}]人像识别任务失败", snowFlakeId, videoGatherDto.getUrl());
+                        log.warn("创建视频人像识别任务失败, [视频ID: {}, 视频URL: {}]", snowFlakeId, videoGatherDto.getUrl());
                     }
                     if (ocrTask.isTimeout() || ocrTask.isError()) {
-                        log.warn("创建视频[视频ID: {}, 视频URL: {}]文本识别任务失败", snowFlakeId, videoGatherDto.getUrl());
+                        log.warn("创建视频文本识别任务失败, [视频ID: {}, 视频URL: {}]", snowFlakeId, videoGatherDto.getUrl());
                     }
                     return new Video(snowFlakeId,
                             new Date(),
@@ -85,12 +78,15 @@ public class VideoServiceImpl implements VideoService {
                             null,
                             videoGatherDto.getUrl(),
                             videoGatherDto.getSiteName(),
-                            "-1&",
+                            -1,
                             0,
                             faceTask.isSuccess() ? faceTask.getResult().getData().getId() : null,
                             ocrTask.isSuccess() ? ocrTask.getResult().getData().getId() : null,
                             -1,
-                            -1);
+                            -1,
+                            videoGatherDto.getSite_url(),
+                            videoGatherDto.getSummary(),
+                            "-1&");
                 }
                 return null;
             }).collect(Collectors.toList()).stream().filter(Objects::nonNull).collect(Collectors.toList());
@@ -99,7 +95,7 @@ public class VideoServiceImpl implements VideoService {
                 videoMapper.createVideo(videoList);
             }
 
-            if (videoGatherDtoResultPage.getTotalCount() == 0) {
+            if (videoGatherDtoResultPage.getData().isEmpty()) {
                 break;
             }
         }
@@ -108,66 +104,63 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public void updateVideo() {
         List<Video> videoList = videoMapper.readAllVideo(null, null, null, null, null);
-        final CountDownLatch latch = new CountDownLatch(3);
-        videoList.forEach(video -> {
-            threadPool.execute(() -> {
-                if (video.getFaceStatus() != 1) {
-                    Result<FaceTaskResultDto> faceTaskResultDtoResult = remoteVideoService.readTaskFaceStatus(video.getFaceTaskId());
-                    int faceTaskStatus = Integer.parseInt(faceTaskResultDtoResult.getData().getTask_status());
-                    if (faceTaskStatus == 1) {
-                        ResultList<FaceMatchDto> faceMatchDtoResultList = remoteVideoService.readTaskFace(video.getFaceTaskId());
-                        List<Person> personList = personMapper.readAllPerson();
-                        List<Integer> ids = YoungUtils.getTag(video.getTags());
-                        for (FaceMatchDto matchDto : faceMatchDtoResultList.getData()) {
-                            for (Person person : personList) {
-                                if(matchDto.getPerson_id().equals(person.getId())) {
-                                    video.setTags(YoungUtils.mergeTagList(YoungUtils.contains(ids, person.getTags())));
-                                }
+        for (Video video : videoList) {
+            if (video.getFaceStatus() != 1 && StringUtils.isNotBlank(video.getFaceTaskId())) {
+                Result<FaceTaskResultDto> faceTaskResultDtoResult = remoteVideoService.readTaskFaceStatus(video.getFaceTaskId());
+                int faceTaskStatus = Integer.parseInt(faceTaskResultDtoResult.getData().getTask_status());
+                if (faceTaskStatus == 1) {
+                    ResultList<FaceMatchDto> faceMatchDtoResultList = remoteVideoService.readTaskFace(video.getFaceTaskId());
+                    List<Person> personList = personMapper.readAllPerson();
+                    List<Integer> ids = YoungUtils.getTag(video.getTags());
+                    for (FaceMatchDto matchDto : faceMatchDtoResultList.getData()) {
+                        for (Person person : personList) {
+                            if (matchDto.getPerson_id().equals(person.getId())) {
+                                video.setTags(YoungUtils.mergeTagList(YoungUtils.contains(ids, person.getTags())));
                             }
                         }
                     }
-                    video.setFaceStatus(faceTaskStatus);
-                    latch.countDown();
+                    video.setStatus(1);
                 }
-            });
+                video.setFaceStatus(faceTaskStatus);
+            }
 
-            threadPool.execute(() -> {
-                if (video.getOcrStatus() != 1) {
-                    Result<OcrTaskResultDto> ocrTaskResultDtoResult = remoteVideoService.readTaskOcrStatus(video.getOcrTaskId());
-                    int ocrTaskStatus = Integer.parseInt(ocrTaskResultDtoResult.getData().getTask_status());
-                    video.setOcrStatus(ocrTaskStatus);
-                }
-            });
 
-            threadPool.execute(() -> {
-                if (video.getOcrStatus() != 1 || YoungUtils.getTag(video.getStatus()).contains(-1)) {
+            if (video.getOcrStatus() != 1 && StringUtils.isNotBlank(video.getOcrTaskId())) {
+                Result<OcrTaskResultDto> ocrTaskResultDtoResult = remoteVideoService.readTaskOcrStatus(video.getOcrTaskId());
+                int ocrTaskStatus = Integer.parseInt(ocrTaskResultDtoResult.getData().getTask_status());
+                if (ocrTaskStatus == 1) {
                     OcrDto ocrDto = readOcrResult(video.getOcrTaskId());
                     StringBuilder stringBuilder = new StringBuilder();
-                    ocrDto.getOcrDtos().forEach(ocr -> stringBuilder.append(ocr.getText()));
-                    List<Integer> status = new ArrayList<>();
-                    if (remoteVideoService.pornDetection(stringBuilder.toString()).getPredictions().get(0).getPredictions().get("label").equals("1")) {
-                        status.add(1);
-                        video.setStatus(YoungUtils.mergeTagList(status));
-                    } else if (remoteVideoService.violationDetection(stringBuilder.toString()).getPredictions().get(0).getPredictions().get("label").equals("1")) {
-                        status.add(2);
-                        video.setStatus(YoungUtils.mergeTagList(status));
-                    } else if (remoteVideoService.adDetection(stringBuilder.toString()).getPredictions().get(0).getPredictions().get("label").equals("1")) {
-                        status.add(3);
-                        video.setStatus(YoungUtils.mergeTagList(status));
-                    } else {
-                        video.setStatus(YoungUtils.mergeTagList(Collections.singletonList(0)));
-                    }
-                    latch.countDown();
-                }
-            });
+                    ocrDto.getOcrDtos().forEach(ocr -> stringBuilder.append(ocr.getText()).append("|"));
+                    StringBuilder sb = new StringBuilder();
 
-            try {
-                latch.await();
-                videoMapper.updateVideoById(video.getId(), video.getStatus(), null, null, video.getFaceStatus(), video.getOcrStatus());
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                    if (StringUtils.isNotBlank(stringBuilder.toString())) {
+                        if ("1".equals(remoteVideoService.pornDetection(stringBuilder.toString()).getData().get(0).getLabel())) {
+                            sb.append("10&");
+                            video.setTags((StringUtils.isBlank(video.getTags()) ? "" : video.getTags()) + "10&");
+                        }
+                        if ("1".equals(remoteVideoService.violationDetection(stringBuilder.toString()).getData().get(0).getLabel())) {
+                            sb.append("11&");
+                            video.setTags((StringUtils.isBlank(video.getTags()) ? "" : video.getTags()) + "11&");
+                        }
+                        if ("1".equals(remoteVideoService.adDetection(stringBuilder.toString()).getData().get(0).getLabel())) {
+                            sb.append("12&");
+                            video.setTags((StringUtils.isBlank(video.getTags()) ? "" : video.getTags()) + "12&");
+                        }
+                        if (StringUtils.isBlank(sb.toString())) {
+                            sb.append("0&");
+                        }
+                    } else {
+                        sb.append("0&");
+                    }
+                    video.setIllegal(sb.toString());
+                }
+                video.setOcrStatus(ocrTaskStatus);
+
             }
-        });
+
+            videoMapper.updateVideoById(video.getId(), video.getStatus(), video.getTags(), null, null, video.getFaceStatus(), video.getOcrStatus(), video.getIllegal());
+        }
     }
 
     @Override
@@ -177,38 +170,44 @@ public class VideoServiceImpl implements VideoService {
         if (Objects.isNull(video)) {
             return null;
         }
+
         return new VideoDto(video.getId(),
+                video.getCoverImg(),
                 new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(video.getCreateTime()),
                 tagMapper.readTagByIds(YoungUtils.getTag(video.getTags())),
                 video.getUrl(),
-                null,
+                video.getSiteUrl(),
                 video.getSource(),
-                YoungUtils.getTag(video.getStatus()),
+                video.getStatus(),
                 video.getFaceTaskId(),
                 video.getOcrTaskId(),
                 video.getFaceStatus(),
-                video.getOcrStatus());
+                video.getOcrStatus(),
+                tagMapper.readTagByIds(YoungUtils.getAllTag(video.getIllegal())));
     }
 
     @Override
     @Transactional
     public PageInfo<VideoListDto> readAllVideo(Integer page, Integer pageSize, VideoSearchVo videoSearchVo) {
-        List<Video> videoList = videoMapper.readAllVideo((page - 1) * pageSize, pageSize, videoSearchVo.getStartTime(), videoSearchVo.getEndTime(), videoSearchVo.getAuthor());
+        List<Video> videoList = videoMapper.readFinallyVideo((page - 1) * pageSize, pageSize, videoSearchVo.getStartTime(), videoSearchVo.getEndTime(), videoSearchVo.getAuthor());
         List<VideoListDto> videoListDtos = videoList.parallelStream().map(video -> {
             List<Tag> tags = tagMapper.readTagByIds(YoungUtils.getTag(video.getTags()));
+
             return new VideoListDto(video.getId(),
+                    video.getCoverImg(),
                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(video.getCreateTime()),
                     tags,
                     video.getUrl(),
-                    null,
+                    video.getSiteUrl(),
                     video.getSource(),
-                    YoungUtils.getTag(video.getStatus()),
+                    video.getStatus(),
                     video.getFaceTaskId(),
                     video.getOcrTaskId(),
                     video.getFaceStatus(),
-                    video.getOcrStatus());
+                    video.getOcrStatus(),
+                    tagMapper.readTagByIds(YoungUtils.getAllTag(video.getIllegal())));
         }).collect(Collectors.toList());
-        return new PageInfo<>(page, pageSize, videoMapper.countVideo(videoSearchVo.getStartTime(), videoSearchVo.getEndTime(), videoSearchVo.getAuthor()), videoListDtos);
+        return new PageInfo<>(page, pageSize, videoMapper.countFinallyVideo(videoSearchVo.getStartTime(), videoSearchVo.getEndTime(), videoSearchVo.getAuthor()), videoListDtos);
     }
 
     @Override
@@ -225,20 +224,30 @@ public class VideoServiceImpl implements VideoService {
             Person person = personMapper.readPersonById(faceMatchDto.getPerson_id());
             return new PersonDto(personId,
                     person == null ? "未入库" : faceMatchDto.getPerson_name(),
-                    faceMatchDto.getFace_url(),
+                    RemoteVideoService.xinruiApi + faceMatchDto.getFace_url(),
                     person == null ? null : tagMapper.readTagByIds(YoungUtils.getTag(person.getTags())),
                     person == null ? null : person.getRemark());
-        }).collect(Collectors.toList());
+        }).collect(Collectors.collectingAndThen(Collectors.toCollection(() ->
+                new TreeSet<>(Comparator.comparing(PersonDto::getId))), ArrayList::new));
 
         return new FaceDto(personDtos);
     }
 
     @Override
     public OcrDto readOcrResult(String task) {
-        ResultList<OcrMatchDto> ocrMatchDtoResult = remoteVideoService.readTaskOcr(task);
-        List<Ocr> ocrs = ocrMatchDtoResult.getData().parallelStream().map(ocrMatchDto ->
-                new Ocr(ocrMatchDto.getIntime(), ocrMatchDto.getOcr_result())
-        ).collect(Collectors.toList());
+        List<OcrMatchDto> ocrMatchDtos;
+        ResultCount<OcrMatchDto> ocrMatchDtoResult = remoteVideoService.readTaskOcr(task, null, 100);
+
+        if (ocrMatchDtoResult.getCount() <= 100) {
+            ocrMatchDtos = ocrMatchDtoResult.getData();
+        } else {
+            ocrMatchDtos = remoteVideoService.readTaskOcr(task, null, ocrMatchDtoResult.getCount()).getData();
+        }
+
+        List<Ocr> ocrs = ocrMatchDtos.parallelStream().sorted(Comparator.comparing(OcrMatchDto::getIntime))
+                .map(ocrMatchDto ->
+                        new Ocr(ocrMatchDto.getIntime(), ocrMatchDto.getOcr_result())
+                ).collect(Collectors.toList());
         return new OcrDto(ocrs);
     }
 
@@ -246,31 +255,29 @@ public class VideoServiceImpl implements VideoService {
     public int reanalyse(Long id) {
         Video video = videoMapper.readVideoById(id);
 
-        final CountDownLatch latch = new CountDownLatch(2);
-        threadPool.execute(() -> {
-            ForestResponse<Result<CreateTaskDto>> faceTask = remoteVideoService.createFaceTask(video.getUrl());
-            if (!faceTask.isTimeout()) {
-                video.setFaceTaskId(faceTask.getResult().getData().getId());
-                video.setFaceStatus(-1);
-            } else {
-                log.warn("重建视频[视频ID: {}, 视频URL: {}]人像识别任务失败, 网络超时!", video.getId(), video.getUrl());
-            }
-            latch.countDown();
-        });
 
-        threadPool.execute(() -> {
-            ForestResponse<Result<CreateTaskDto>> ocrTask = remoteVideoService.createOcrTask(video.getUrl());
-            if (!ocrTask.isTimeout()) {
-                video.setOcrTaskId(ocrTask.getResult().getData().getId());
-                video.setOcrStatus(-1);
-            } else {
-                log.warn("重建视频[视频ID: {}, 视频URL: {}]文本识别任务失败, 网络超时!", video.getId(), video.getUrl());
-            }
-            video.setStatus(YoungUtils.mergeTagList(Collections.singletonList(-1)));
-            latch.countDown();
-        });
+        ForestResponse<Result<CreateTaskDto>> faceTask = remoteVideoService.createFaceTask(video.getUrl());
+        if (!faceTask.isTimeout()) {
+            video.setFaceTaskId(faceTask.getResult().getData().getId());
+            video.setFaceStatus(-1);
+            video.setStatus(-1);
+        } else {
+            log.warn("重建视频[视频ID: {}, 视频URL: {}]人像识别任务失败, 网络超时!", video.getId(), video.getUrl());
+        }
 
 
-        return videoMapper.updateVideoById(id, video.getStatus(), video.getFaceTaskId(), video.getOcrTaskId(), -1, -1);
+        ForestResponse<Result<CreateTaskDto>> ocrTask = remoteVideoService.createOcrTask(video.getUrl());
+        if (!ocrTask.isTimeout()) {
+            video.setOcrTaskId(ocrTask.getResult().getData().getId());
+            video.setOcrStatus(-1);
+        } else {
+            log.warn("重建视频[视频ID: {}, 视频URL: {}]文本识别任务失败, 网络超时!", video.getId(), video.getUrl());
+        }
+
+        if (video.getOcrStatus() == -1) {
+            video.setIllegal("-1&");
+        }
+
+        return videoMapper.updateVideoById(id, video.getStatus(), null, video.getFaceTaskId(), video.getOcrTaskId(), -1, -1, video.getIllegal());
     }
 }

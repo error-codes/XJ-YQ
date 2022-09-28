@@ -25,6 +25,9 @@ public class VideoDto {
     @ApiModelProperty("视频ID")
     private Long videoId;
 
+    @ApiModelProperty("视频封面图")
+    private String coverImg;
+
     @ApiModelProperty("入库时间")
     private String createTime;
 
@@ -40,14 +43,8 @@ public class VideoDto {
     private String author;
 
     @ApiModelProperty("违规状态<br/>-1 待分析<br/>" +
-            "0 未违规<br/>" +
-            "1 色情<br/>" +
-            "2 违禁<br/>" +
-            "3 广告<br/>" +
-            "4 暴恐<br/>" +
-            "5 涉政<br/>" +
-            "6 内容风险<br/> ")
-    private List<Integer> status;
+            "1 分析完成<br/>")
+    private Integer status;
 
     @ApiModelProperty("人脸识别任务ID")
     private String faceTaskId;
@@ -60,4 +57,7 @@ public class VideoDto {
 
     @ApiModelProperty("文本识别状态")
     private Integer ocrStatus;
+
+    @ApiModelProperty("文本违规状态 -1 待分析<br/>  10 色情<br/> 11 违禁<br/> 12 广告<br/>")
+    private List<Tag> illegal;
 }

@@ -14,7 +14,7 @@
         where url = #{url}
     </select>
 
-    <select id="countVideo" resultType="java.lang.Integer">
+    <select id="countFinallyVideo" resultType="java.lang.Integer">
         select COUNT(id)
         from video
         <where>
@@ -24,6 +24,7 @@
             <if test="author!=null and author!=''">
                 and `source` like concat('%', #{author}, '%')
             </if>
+            and deleted = 0 and status = 1
         </where>
     </select>
 
@@ -36,10 +37,27 @@
             <if test="author!=null and author!=''">
                 and `source` like concat('%', #{author}, '%')
             </if>
-                 and deleted = 0
+            and deleted = 0
         </where>
         order by create_time desc
         <if test="page!=null and pageSize!=''">
+            limit #{page}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="readFinallyVideo" resultType="com.young.xjyq.entity.Video">
+        select * from video
+        <where>
+            <if test="startTime!=null and endTime!=null">
+                and create_time between #{startTime} and #{endTime}
+            </if>
+            <if test="author!=null and author!=''">
+                and `source` like concat('%', #{author}, '%')
+            </if>
+            and deleted = 0 and status = 1
+        </where>
+        order by create_time desc
+        <if test="page!=null and pageSize!=null">
             limit #{page}, #{pageSize}
         </if>
     </select>
@@ -50,6 +68,7 @@
             <if test="status!=null">
                 status=#{status},
             </if>
+            tags=#{tags},
             <if test="faceTaskId!=null">
                 face_task_id=#{faceTaskId},
             </if>
@@ -61,6 +80,9 @@
             </if>
             <if test="ocrStatus!=null">
                 ocr_status=#{ocrStatus},
+            </if>
+            <if test="illegal!=null">
+                illegal=#{illegal},
             </if>
             update_time=now()
         </set>
@@ -90,7 +112,8 @@
             ( #{video.id}, #{video.url}, #{video.tags}, #{video.source},
                 #{video.status}, #{video.createTime}, #{video.updateTime},
                 #{video.deleted}, #{video.faceTaskId}, #{video.ocrTaskId},
-                #{video.faceStatus}, #{video.ocrStatus})
+                #{video.faceStatus}, #{video.ocrStatus}, #{video.siteUrl},
+                #{video.coverImg}, #{video.illegal})
         </foreach>
         on duplicate key update url = values(url)
     </insert>

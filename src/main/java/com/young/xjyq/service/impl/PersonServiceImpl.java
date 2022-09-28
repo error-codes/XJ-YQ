@@ -55,9 +55,13 @@ public class PersonServiceImpl implements PersonService {
         }
         Person person = personMapper.readPersonById(id);
         ReadPersonDto readPersonDto = result.getData();
+        List<ReadPersonDto.Face> faceList = readPersonDto.getFace_list();
+        faceList.forEach(face -> {
+            face.setFace_url(RemotePersonService.xinruiApi + face.getFace_url());
+        });
         return new PersonDetailDto(readPersonDto.getId(),
                 readPersonDto.getPerson_name(),
-                readPersonDto.getFace_list(),
+                faceList,
                 Objects.isNull(person) ? null : tagMapper.readTagByIds(YoungUtils.getTag(person.getTags())),
                 Objects.isNull(person) ? null : person.getRemark());
     }
@@ -70,7 +74,7 @@ public class PersonServiceImpl implements PersonService {
         for (Person person : personList) {
             personDtos.add(new PersonDto(person.getId(),
                     person.getPersonName(),
-                    person.getFaceUrl(),
+                    RemotePersonService.xinruiApi + person.getFaceUrl(),
                     tagMapper.readTagByIds(YoungUtils.getTag(person.getTags())),
                     person.getRemark()));
         }

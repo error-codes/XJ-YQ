@@ -18,11 +18,13 @@ public interface VideoMapper {
 
     Video readVideoByUrl(String url);
 
-    Integer countVideo(Date startTime, Date endTime, String author);
+    Integer countFinallyVideo(Date startTime, Date endTime, String author);
 
     List<Video> readAllVideo(Integer page, Integer pageSize, Date startTime, Date endTime, String author);
 
-    int updateVideoById(Long id, String status, String faceTaskId, String ocrTaskId, Integer faceStatus, Integer ocrStatus);
+    List<Video> readFinallyVideo(Integer page, Integer pageSize, Date startTime, Date endTime, String author);
+
+    int updateVideoById(Long id, Integer status, String tags, String faceTaskId, String ocrTaskId, Integer faceStatus, Integer ocrStatus, String illegal);
 
     int batchDeleteVideo(List<Long> ids);
 

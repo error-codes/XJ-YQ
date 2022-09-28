@@ -31,7 +31,7 @@ public class Video {
 
     private String source;
 
-    private String status;
+    private Integer status;
 
     private Integer deleted;
 
@@ -42,4 +42,10 @@ public class Video {
     private Integer faceStatus;
 
     private Integer ocrStatus;
+
+    private String siteUrl;
+
+    private String coverImg;
+
+    private String illegal;
 }

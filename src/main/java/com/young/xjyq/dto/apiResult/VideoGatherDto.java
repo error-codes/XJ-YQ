@@ -45,4 +45,6 @@ public class VideoGatherDto {
     private String urlhash;
     private String userId;
     private String weiboId;
+    private String summary;
+    private String site_url;
 }

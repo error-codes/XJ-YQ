@@ -2,11 +2,11 @@ package com.young.xjyq.service;
 
 import com.dtflys.forest.annotation.*;
 import com.dtflys.forest.http.ForestResponse;
-import com.young.xjyq.common.Result;
-import com.young.xjyq.common.ResultList;
-import com.young.xjyq.common.ResultPage;
-import com.young.xjyq.common.WiseResult;
+import com.young.xjyq.common.*;
 import com.young.xjyq.dto.apiResult.*;
+import com.young.xjyq.util.YoungUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,7 +17,12 @@ import org.springframework.stereotype.Service;
 @Service
 public interface RemoteVideoService {
 
-    @Get(url = "http://101.200.125.197/es_push/servlet/DataPushServlet/")
+    String xinruiApi = "http://116.178.87.241:9898";
+
+    String checkApi = "http://47.95.50.249:7012";
+
+    String videoApi = "http://101.200.125.197";
+    @Get(url = videoApi + "/es_push/servlet/DataPushServlet/")
     ResultPage<VideoGatherDto> insertVideo(@Query("pageNo") Integer page,
                                            @Query("pageSize") Integer pageSize,
                                            @Query("time") Integer time,
@@ -25,33 +30,35 @@ public interface RemoteVideoService {
                                            @Query("domain2") String domain,
                                            @Query("type") Integer type,
                                            @Query("author") String author,
-                                           @Query("keyword") String keyword);
+                                           @Query("keywords") String keyword);
 
-    @Post(url = "http://192.17.1.20:9898/structure/v1/upload_video/")
+    @Post(url = xinruiApi + "/structure/v1/upload_video/")
     ForestResponse<Result<CreateTaskDto>> createFaceTask(@Body("video_url") String videoUrl);
 
-    @Get(url = "http://192.17.1.20:9898/structure/v1/{taskId}/taskstatus/")
+    @Get(url = xinruiApi + "/structure/v1/{taskId}/taskstatus/")
     Result<FaceTaskResultDto> readTaskFaceStatus(@Query("taskId") String taskId);
 
-    @Get(url = "http://192.17.1.20:9898/structure/v1/{taskId}/faces/")
+    @Get(url = xinruiApi + "/structure/v1/{taskId}/faces/")
     ResultList<FaceMatchDto> readTaskFace(@Query("taskId") String taskId);
 
-    @Post(url = "http://192.17.1.20:9898/structure/v3/ocr/upload_video/")
+    @Post(url = xinruiApi + "/structure/v3/ocr/upload_video/")
     ForestResponse<Result<CreateTaskDto>> createOcrTask(@Body("video_url") String videoUrl);
 
-    @Get(url = "http://192.17.1.20:9898/structure/v3/ocr/{taskId}/taskstatus/")
+    @Get(url = xinruiApi + "/structure/v3/ocr/{taskId}/taskstatus/")
     Result<OcrTaskResultDto> readTaskOcrStatus(@Query("taskId") String taskId);
 
-    @Get(url = "http://192.17.1.20:9898/structure/v3/ocr/{taskId}/result/")
-    ResultList<OcrMatchDto> readTaskOcr(@Query("taskId") String taskId);
+    @Get(url = xinruiApi + "/structure/v3/ocr/{taskId}/result/")
+    ResultCount<OcrMatchDto> readTaskOcr(@Query("taskId") String taskId,
+                                         @Query("page") Integer page,
+                                         @Query("limit") Integer limit);
 
-    @Post(url = "http://122.14.231.158:6002/v1/api/61519faffee774527a19ea9e?token=363326947")
+    @Post(url = checkApi + "/v1/api/61519faffee774527a19ea9e?token=363326947")
     WiseResult pornDetection(@JSONBody("content") String text);
 
-    @Post(url = "http://122.14.231.158:6002/v1/api/614dad2fad36e89f8f734f61?token=363326947")
+    @Post(url = checkApi + "/v1/api/6183ade6b85b6da0f265e169?token=363326947")
     WiseResult violationDetection(@JSONBody("content") String text);
 
-    @Post(url = "http://122.14.231.158:6002/v1/api/60e2d49da0e3c1b19799051f?token=363326947")
+    @Post(url = checkApi + "/v1/api/6232e395a0dd49a3d4394c67?token=363326947")
     WiseResult adDetection(@JSONBody("content") String text);
 
 }

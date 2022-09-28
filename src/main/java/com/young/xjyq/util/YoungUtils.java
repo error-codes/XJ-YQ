@@ -1,6 +1,7 @@
 package com.young.xjyq.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,21 @@ public class YoungUtils {
 
     public static List<Integer> getTag(String tags) {
         if (StringUtils.isBlank(tags)) {
-            return null;
+            return new ArrayList<>();
+        }
+        tags.replaceAll("0&", "");
+        tags.replaceAll("-1&", "");
+        String[] tagIds = tags.split("&");
+        List<Integer> tagIdList = new ArrayList<>(10);
+        for (String tagId : tagIds) {
+            tagIdList.add(Integer.parseInt(tagId));
+        }
+        return tagIdList;
+    }
+
+    public static List<Integer> getAllTag(String tags) {
+        if (StringUtils.isBlank(tags)) {
+            return new ArrayList<>();
         }
         String[] tagIds = tags.split("&");
         List<Integer> tagIdList = new ArrayList<>(10);
